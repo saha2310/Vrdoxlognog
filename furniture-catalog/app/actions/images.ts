@@ -10,6 +10,25 @@ function denied(): ActionResult<never> {
   return { success: false, error: { code: "FORBIDDEN", message: "Доступ запрещён" } };
 }
 
+// Изображения влияют на публичные страницы (обложка в каталоге, на главной, в карточке товара) —
+// после любого изменения фото нужно сбросить кэш этих маршрутов, не только страницы редактирования.
+async function revalidateProductPaths(
+  supabase: ReturnType<typeof createAdminClient>,
+  productId: string
+): Promise<void> {
+  const { data: product } = await supabase
+    .from("products")
+    .select("slug")
+    .eq("id", productId)
+    .maybeSingle();
+
+  revalidatePath("/");
+  revalidatePath("/catalog");
+  if (product?.slug) {
+    revalidatePath(`/catalog/${product.slug}`);
+  }
+}
+
 export async function uploadProductImage(
   productId: string,
   file: File
@@ -59,6 +78,7 @@ export async function uploadProductImage(
     return { success: false, error: { code: "DB_ERROR", message: error.message } };
   }
 
+  await revalidateProductPaths(supabase, productId);
   revalidatePath(`/admin/products/${productId}/edit`);
   return { success: true, data };
 }
@@ -100,6 +120,7 @@ export async function deleteProductImage(imageId: string): Promise<ActionResult<
     }
   }
 
+  await revalidateProductPaths(supabase, image.product_id);
   revalidatePath(`/admin/products/${image.product_id}/edit`);
   return { success: true, data: null };
 }
@@ -122,6 +143,7 @@ export async function setCoverImage(
     return { success: false, error: { code: "DB_ERROR", message: error.message } };
   }
 
+  await revalidateProductPaths(supabase, productId);
   revalidatePath(`/admin/products/${productId}/edit`);
   return { success: true, data: null };
 }
@@ -145,6 +167,7 @@ export async function reorderProductImages(
     return { success: false, error: { code: "DB_ERROR", message: failed.error.message } };
   }
 
+  await revalidateProductPaths(supabase, productId);
   revalidatePath(`/admin/products/${productId}/edit`);
   return { success: true, data: null };
 }
