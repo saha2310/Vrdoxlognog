@@ -129,7 +129,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
         </label>
       </div>
 
-      <div className="flex gap-6">
+      <div className="flex flex-wrap gap-6">
         <Select
           id="status"
           label="Статус"
