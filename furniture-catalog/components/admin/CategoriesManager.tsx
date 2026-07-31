@@ -57,7 +57,7 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
       {initialCategories.length === 0 ? (
         <EmptyState title="Категорий пока нет" description="Создайте первую категорию, чтобы добавлять товары." />
       ) : (
-        <div className="border border-line rounded-sm overflow-hidden">
+        <div className="border border-line rounded-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-bone-dim text-ink-soft text-left">
               <tr>
