@@ -52,6 +52,24 @@ insert into site_content (key, data) values
   ('home', '{}')
 on conflict (key) do nothing;
 
+-- Виджеты категорий на главной странице ("Каталог по категориям").
+-- Каждый виджет — картинка + название + ссылка на одну или несколько категорий.
+-- При клике на сайте открывается /catalog с уже включённым фильтром по этим категориям.
+create table if not exists widgets (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  image_storage_path text,
+  category_ids uuid[] not null default '{}',
+  sort_order int default 0,
+  is_visible boolean default true,
+  created_at timestamptz default now()
+);
+
+create index if not exists widgets_sort_order_idx on widgets (sort_order);
+
+alter table widgets enable row level security;
+create policy "public_read_widgets" on widgets for select using (true);
+
 -- Индексы
 create index if not exists products_slug_idx on products (slug);
 create index if not exists products_category_id_idx on products (category_id);

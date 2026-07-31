@@ -74,6 +74,20 @@ export interface SiteContentRow<T = Record<string, unknown>> {
   updated_at: string;
 }
 
+export interface Widget {
+  id: string;
+  title: string;
+  image_storage_path: string | null;
+  category_ids: string[];
+  sort_order: number;
+  is_visible: boolean;
+  created_at: string;
+}
+
+export interface WidgetWithCategories extends Widget {
+  categories: Category[];
+}
+
 // Единый формат ответа Server Actions
 export type ActionResult<T> =
   | { success: true; data: T }

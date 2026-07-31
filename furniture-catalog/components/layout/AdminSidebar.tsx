@@ -9,6 +9,8 @@ const LINKS = [
   { href: "/admin", label: "Дашборд" },
   { href: "/admin/products", label: "Товары" },
   { href: "/admin/categories", label: "Категории" },
+  { href: "/admin/widgets", label: "Виджеты" },
+  { href: "/admin/content/home", label: "Главная" },
   { href: "/admin/content/about", label: "О нас" },
   { href: "/admin/content/contacts", label: "Контакты" },
   { href: "/admin/content/settings", label: "Настройки" },

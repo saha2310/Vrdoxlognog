@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/server";
-import type { Category, ProductWithRelations, SiteContentKey } from "@/lib/types";
+import type { Category, ProductWithRelations, SiteContentKey, WidgetWithCategories } from "@/lib/types";
 
 // Публичные SELECT-запросы читаем через service role на сервере (Server Components),
 // чтобы не зависеть от RLS-политик анонимного доступа, но фильтрацию
@@ -31,7 +31,7 @@ export async function getAllCategoriesAdmin(): Promise<Category[]> {
 }
 
 export interface CatalogFilters {
-  category?: string; // slug категории
+  category?: string; // slug категории, либо несколько через запятую (для виджетов)
   search?: string;
   page?: number;
   pageSize?: number;
@@ -48,17 +48,21 @@ export async function getPublishedProducts(filters: CatalogFilters = {}) {
     .eq("is_visible", true);
 
   if (category) {
-    const { data: cat } = await supabase
+    const slugs = category
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const { data: cats } = await supabase
       .from("categories")
       .select("id")
-      .eq("slug", category)
-      .eq("is_visible", true)
-      .maybeSingle();
+      .in("slug", slugs)
+      .eq("is_visible", true);
 
-    if (!cat) {
+    if (!cats || cats.length === 0) {
       return { products: [] as ProductWithRelations[], total: 0 };
     }
-    query = query.eq("category_id", cat.id);
+    query = query.in("category_id", cats.map((c) => c.id));
   }
 
   if (search) {
@@ -120,5 +124,55 @@ export async function getSiteContent<T = Record<string, unknown>>(
 
   if (error) throw error;
   return (data?.data ?? {}) as T;
+}
+
+export async function getVisibleWidgets(): Promise<WidgetWithCategories[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("widgets")
+    .select("*")
+    .eq("is_visible", true)
+    .order("sort_order", { ascending: true });
+
+  if (error) throw error;
+  if (!data || data.length === 0) return [];
+
+  const allCategoryIds = Array.from(new Set(data.flatMap((w) => w.category_ids ?? [])));
+  const categoriesById = new Map<string, Category>();
+
+  if (allCategoryIds.length > 0) {
+    const { data: cats } = await supabase.from("categories").select("*").in("id", allCategoryIds);
+    (cats ?? []).forEach((c) => categoriesById.set(c.id, c));
+  }
+
+  return data.map((widget) => ({
+    ...widget,
+    categories: (widget.category_ids ?? [])
+      .map((id: string) => categoriesById.get(id))
+      .filter((c: Category | undefined): c is Category => Boolean(c)),
+  }));
+}
+
+export async function getAllWidgetsAdmin(): Promise<WidgetWithCategories[]> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.from("widgets").select("*").order("sort_order", { ascending: true });
+
+  if (error) throw error;
+  if (!data || data.length === 0) return [];
+
+  const allCategoryIds = Array.from(new Set(data.flatMap((w) => w.category_ids ?? [])));
+  const categoriesById = new Map<string, Category>();
+
+  if (allCategoryIds.length > 0) {
+    const { data: cats } = await supabase.from("categories").select("*").in("id", allCategoryIds);
+    (cats ?? []).forEach((c) => categoriesById.set(c.id, c));
+  }
+
+  return data.map((widget) => ({
+    ...widget,
+    categories: (widget.category_ids ?? [])
+      .map((id: string) => categoriesById.get(id))
+      .filter((c: Category | undefined): c is Category => Boolean(c)),
+  }));
 }
 

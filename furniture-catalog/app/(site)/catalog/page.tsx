@@ -44,7 +44,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       <h1 className="font-display text-3xl md:text-4xl text-ink mb-8">Каталог</h1>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <CategoryFilter categories={categories} activeSlug={params.category} search={params.search} />
+        <CategoryFilter categories={categories} activeSlugs={params.category} search={params.search} />
         <SearchBar category={params.category} search={params.search} />
       </div>
 

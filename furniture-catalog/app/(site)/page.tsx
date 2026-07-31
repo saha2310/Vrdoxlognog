@@ -1,20 +1,30 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getLatestPublishedProducts, getSiteContent } from "@/lib/queries";
+import { getLatestPublishedProducts, getSiteContent, getVisibleWidgets } from "@/lib/queries";
 import { getCoverImage, getStorageUrl } from "@/lib/storage";
-import { ProductGrid } from "@/components/catalog/ProductGrid";
+import { NewArrivalsCarousel } from "@/components/catalog/NewArrivalsCarousel";
+import { CategoryWidgets } from "@/components/catalog/CategoryWidgets";
 import { ButtonLink } from "@/components/ui/Button";
 import type { AboutContent, ContactsContent, SettingsContent } from "@/lib/types";
 
 export default async function HomePage() {
   const settings = await getSiteContent<SettingsContent>("settings");
-  const [products, about, contacts] = await Promise.all([
+  const [products, home, widgets, about, contacts] = await Promise.all([
     getLatestPublishedProducts(settings.productsOnHome || 4),
+    getSiteContent<{ heroImagePath?: string }>("home"),
+    getVisibleWidgets(),
     getSiteContent<AboutContent>("about"),
     getSiteContent<ContactsContent>("contacts"),
   ]);
 
-  const heroCover = products[0] ? getCoverImage(products[0].images) : undefined;
+  // Картинка баннера: сначала своя (загруженная в админке), иначе — фото последнего товара.
+  const fallbackCover = products[0] ? getCoverImage(products[0].images) : undefined;
+  const heroImageSrc = home.heroImagePath
+    ? getStorageUrl(home.heroImagePath)
+    : fallbackCover
+    ? getStorageUrl(fallbackCover.storage_path)
+    : null;
+  const heroImageAlt = home.heroImagePath ? settings.companyName || "Мастерская" : products[0]?.title ?? "";
 
   return (
     <div className="flex flex-col">
@@ -34,10 +44,10 @@ export default async function HomePage() {
           </ButtonLink>
         </div>
         <div className="corner-marks relative aspect-[4/5] bg-bone-dim overflow-hidden">
-          {heroCover ? (
+          {heroImageSrc ? (
             <Image
-              src={getStorageUrl(heroCover.storage_path)}
-              alt={products[0].title}
+              src={heroImageSrc}
+              alt={heroImageAlt}
               fill
               sizes="(min-width: 768px) 50vw, 100vw"
               className="object-cover"
@@ -51,6 +61,19 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Каталог по категориям (виджеты) */}
+      {widgets.length > 0 && (
+        <section className="container-page py-12 md:py-16 border-t border-line">
+          <div className="flex items-baseline justify-between mb-8">
+            <h2 className="font-display text-2xl md:text-3xl text-ink">Каталог по категориям</h2>
+            <Link href="/catalog" className="text-sm text-brass-deep hover:underline">
+              Смотреть всё →
+            </Link>
+          </div>
+          <CategoryWidgets widgets={widgets} />
+        </section>
+      )}
+
       {/* Новинки */}
       {products.length > 0 && (
         <section className="container-page py-12 md:py-16 border-t border-line">
@@ -60,7 +83,7 @@ export default async function HomePage() {
               Весь каталог →
             </Link>
           </div>
-          <ProductGrid products={products} />
+          <NewArrivalsCarousel products={products} />
         </section>
       )}
 

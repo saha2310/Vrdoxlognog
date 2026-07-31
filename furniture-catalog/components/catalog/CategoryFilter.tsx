@@ -3,7 +3,8 @@ import type { Category } from "@/lib/types";
 
 interface CategoryFilterProps {
   categories: Category[];
-  activeSlug?: string;
+  // slug категории, либо несколько через запятую (когда пришли по ссылке с виджета)
+  activeSlugs?: string;
   search?: string;
 }
 
@@ -15,13 +16,18 @@ function buildHref(slug: string | null, search?: string) {
   return qs ? `/catalog?${qs}` : "/catalog";
 }
 
-export function CategoryFilter({ categories, activeSlug, search }: CategoryFilterProps) {
+export function CategoryFilter({ categories, activeSlugs, search }: CategoryFilterProps) {
+  const activeList = (activeSlugs ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
   return (
     <div className="flex flex-wrap gap-2">
       <Link
         href={buildHref(null, search)}
         className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
-          !activeSlug ? "border-brass bg-brass text-bone" : "border-line text-ink-soft hover:border-ink"
+          activeList.length === 0 ? "border-brass bg-brass text-bone" : "border-line text-ink-soft hover:border-ink"
         }`}
       >
         Все
@@ -31,7 +37,7 @@ export function CategoryFilter({ categories, activeSlug, search }: CategoryFilte
           key={category.id}
           href={buildHref(category.slug, search)}
           className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
-            activeSlug === category.slug
+            activeList.includes(category.slug)
               ? "border-brass bg-brass text-bone"
               : "border-line text-ink-soft hover:border-ink"
           }`}

@@ -3,12 +3,13 @@ import { createAdminClient } from "@/lib/supabase/server";
 
 async function getStats() {
   const supabase = createAdminClient();
-  const [{ count: totalProducts }, { count: published }, { count: draft }, { count: categories }] =
+  const [{ count: totalProducts }, { count: published }, { count: draft }, { count: categories }, { count: widgets }] =
     await Promise.all([
       supabase.from("products").select("id", { count: "exact", head: true }),
       supabase.from("products").select("id", { count: "exact", head: true }).eq("status", "published"),
       supabase.from("products").select("id", { count: "exact", head: true }).eq("status", "draft"),
       supabase.from("categories").select("id", { count: "exact", head: true }),
+      supabase.from("widgets").select("id", { count: "exact", head: true }),
     ]);
 
   return {
@@ -16,6 +17,7 @@ async function getStats() {
     published: published ?? 0,
     draft: draft ?? 0,
     categories: categories ?? 0,
+    widgets: widgets ?? 0,
   };
 }
 
@@ -27,6 +29,7 @@ export default async function AdminDashboardPage() {
     { label: "Опубликовано", value: stats.published, href: "/admin/products?status=published" },
     { label: "Черновики", value: stats.draft, href: "/admin/products?status=draft" },
     { label: "Категории", value: stats.categories, href: "/admin/categories" },
+    { label: "Виджеты", value: stats.widgets, href: "/admin/widgets" },
   ];
 
   return (
@@ -36,7 +39,7 @@ export default async function AdminDashboardPage() {
         <h1 className="font-display text-2xl md:text-3xl text-ink">Обзор мастерской</h1>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
         {cards.map((card) => (
           <Link
             key={card.label}
