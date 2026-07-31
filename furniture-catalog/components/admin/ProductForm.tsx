@@ -96,16 +96,17 @@ export function ProductForm({ product, categories }: ProductFormProps) {
         onChange={(e) => setDescription(e.target.value)}
       />
 
-      <div className="grid grid-cols-2 gap-4">
-        <Input id="material" label="Материал" value={material} onChange={(e) => setMaterial(e.target.value)} />
+      <div className="flex flex-wrap items-end gap-4">
         <Input
-          id="dimensions"
-          label="Размеры"
-          value={dimensions}
-          onChange={(e) => setDimensions(e.target.value)}
-          placeholder="Например: 120×60×75 см"
+          id="price"
+          type="number"
+          label="Цена, ₽"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          disabled={priceOnRequest}
+          min={0}
+          className="min-w-[10rem] flex-1"
         />
-      </div>
 
      <div className="flex items-end gap-4">
         <Input
