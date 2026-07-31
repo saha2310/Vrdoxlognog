@@ -49,6 +49,7 @@ export async function createProduct(formData: unknown): Promise<ActionResult<Pro
     return { success: false, error: { code: "DB_ERROR", message: error.message } };
   }
 
+  revalidatePath("/");
   revalidatePath("/admin/products");
   revalidatePath("/catalog");
   return { success: true, data };
@@ -93,6 +94,7 @@ export async function updateProduct(formData: unknown): Promise<ActionResult<Pro
     return { success: false, error: { code: "DB_ERROR", message: error.message } };
   }
 
+  revalidatePath("/");
   revalidatePath("/admin/products");
   revalidatePath("/catalog");
   revalidatePath(`/catalog/${slug}`);
@@ -119,6 +121,7 @@ export async function deleteProduct(id: string): Promise<ActionResult<null>> {
     await supabase.storage.from("product-images").remove(images.map((i) => i.storage_path));
   }
 
+  revalidatePath("/");
   revalidatePath("/admin/products");
   revalidatePath("/catalog");
   return { success: true, data: null };
@@ -136,6 +139,7 @@ export async function setProductStatus(
     return { success: false, error: { code: "DB_ERROR", message: error.message } };
   }
 
+  revalidatePath("/");
   revalidatePath("/admin/products");
   revalidatePath("/catalog");
   return { success: true, data: null };
@@ -153,6 +157,7 @@ export async function setProductVisibility(
     return { success: false, error: { code: "DB_ERROR", message: error.message } };
   }
 
+  revalidatePath("/");
   revalidatePath("/admin/products");
   revalidatePath("/catalog");
   return { success: true, data: null };
