@@ -107,7 +107,7 @@ export function ProductForm({ product, categories }: ProductFormProps) {
         />
       </div>
 
-      <div className="flex items-end gap-4">
+     <div className="flex items-end gap-4">
         <Input
           id="price"
           type="number"
