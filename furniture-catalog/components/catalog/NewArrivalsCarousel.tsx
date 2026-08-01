@@ -75,7 +75,7 @@ export function NewArrivalsCarousel({ products }: { products: ProductWithRelatio
             <Link
               key={product.id}
               href={`/catalog/${product.slug}`}
-              className="group shrink-0 snap-start basis-[80%] sm:basis-[45%] md:basis-[31%] lg:basis-[23%] xl:basis-[18%] 2xl:basis-[14.5%] flex flex-col"
+              className="group shrink-0 snap-start w-[70vw] sm:w-[260px] lg:w-[290px] flex flex-col"
             >
               <div className="corner-marks relative aspect-[4/5] overflow-hidden bg-bone-dim rounded-sm">
                 {cover ? (
@@ -83,7 +83,7 @@ export function NewArrivalsCarousel({ products }: { products: ProductWithRelatio
                     src={getStorageUrl(cover.storage_path)}
                     alt={product.title}
                     fill
-                    sizes="(min-width: 1536px) 14vw, (min-width: 1280px) 18vw, (min-width: 1024px) 23vw, (min-width: 640px) 45vw, 80vw"
+                    sizes="(min-width: 640px) 290px, 70vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (
