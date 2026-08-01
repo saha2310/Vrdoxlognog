@@ -5,7 +5,7 @@ import type { WidgetWithCategories } from "@/lib/types";
 
 export function CategoryWidgets({ widgets }: { widgets: WidgetWithCategories[] }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-5">
       {widgets.map((widget) => (
         <Link
           key={widget.id}
@@ -18,7 +18,7 @@ export function CategoryWidgets({ widgets }: { widgets: WidgetWithCategories[] }
                 src={getStorageUrl(widget.image_storage_path)}
                 alt={widget.title}
                 fill
-                sizes="(min-width: 1024px) 22vw, (min-width: 640px) 30vw, 45vw"
+                sizes="(min-width: 640px) 300px, 45vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
             ) : (
