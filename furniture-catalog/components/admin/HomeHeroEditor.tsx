@@ -8,24 +8,38 @@ import { uploadHeroImage, removeHeroImage } from "@/app/actions/content";
 import { ErrorMessage, Spinner } from "@/components/ui/Feedback";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/Modal";
+import { ImageCropper } from "@/components/ui/ImageCropper";
+
+// Соотношение сторон и выходной размер должны совпадать с тем, как баннер
+// показывается на главной (aspect-[4/5] в app/(site)/page.tsx).
+const HERO_ASPECT = 4 / 5;
+const HERO_OUTPUT_WIDTH = 1000;
+const HERO_OUTPUT_HEIGHT = 1250;
 
 export function HomeHeroEditor({ heroImagePath }: { heroImagePath: string | null }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [removing, setRemoving] = useState(false);
 
-  async function handleFile(files: FileList | null) {
+  function handleFileSelect(files: FileList | null) {
     const file = files?.[0];
     if (!file) return;
+    setError(null);
+    setPendingFile(file);
+    if (inputRef.current) inputRef.current.value = "";
+  }
 
+  async function handleCropped(blob: Blob) {
     setUploading(true);
     setError(null);
-    const result = await uploadHeroImage(file);
+    const croppedFile = new File([blob], "hero.jpg", { type: "image/jpeg" });
+    const result = await uploadHeroImage(croppedFile);
     setUploading(false);
-    if (inputRef.current) inputRef.current.value = "";
+    setPendingFile(null);
 
     if (!result.success) {
       setError(result.error.message);
@@ -51,7 +65,8 @@ export function HomeHeroEditor({ heroImagePath }: { heroImagePath: string | null
       <div>
         <p className="text-sm font-medium text-ink-soft mb-1">Картинка баннера</p>
         <p className="text-xs text-ink-soft/60">
-          Показывается на главной странице справа от заголовка. Если не загружена — вместо неё
+          Показывается на главной странице справа от заголовка. Подойдёт любое фото JPG/PNG —
+          после выбора файла вы сможете обрезать нужную область. Если не загружена — вместо неё
           показывается фото последнего опубликованного товара.
         </p>
       </div>
@@ -81,7 +96,7 @@ export function HomeHeroEditor({ heroImagePath }: { heroImagePath: string | null
           type="file"
           accept="image/*"
           disabled={uploading}
-          onChange={(e) => handleFile(e.target.files)}
+          onChange={(e) => handleFileSelect(e.target.files)}
           className="hidden"
         />
       </label>
@@ -90,6 +105,18 @@ export function HomeHeroEditor({ heroImagePath }: { heroImagePath: string | null
         <Button type="button" variant="ghost" onClick={() => setConfirmRemove(true)} className="w-fit">
           Убрать картинку
         </Button>
+      )}
+
+      {pendingFile && (
+        <ImageCropper
+          file={pendingFile}
+          aspectRatio={HERO_ASPECT}
+          outputWidth={HERO_OUTPUT_WIDTH}
+          outputHeight={HERO_OUTPUT_HEIGHT}
+          title="Обрежьте картинку баннера"
+          onCancel={() => setPendingFile(null)}
+          onCropped={handleCropped}
+        />
       )}
 
       <ConfirmDialog
